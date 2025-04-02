@@ -1,0 +1,40 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: #fff;
+}
+
+.logo {
+  width: 120px;
+  height: 31px;
+  margin-right: 24px;
+  
+  img {
+    height: 100%;
+    width: auto;
+  }
+}
+
+.menu {
+  flex: 1;
+  line-height: 64px;
+  border-bottom: none;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// 移动端菜单按钮
+.mobile-menu-button {
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: block;
+  }
+}

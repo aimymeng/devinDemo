@@ -10,6 +10,10 @@ export default defineConfig({
     cors: true,
     hmr: {
       clientPort: 443
-    }
+    },
+    allowedHosts: [
+      'github-demo-app-tunnel-6tnnq4bx.devinapps.com',
+      'github-demo-app-tunnel-*.devinapps.com'
+    ]
   },
 });

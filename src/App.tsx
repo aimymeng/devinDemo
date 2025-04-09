@@ -160,6 +160,7 @@ const App: React.FC = () => {
               <Title level={4} style={{ margin: 0 }}>规则列表</Title>
               <Button 
                 type="primary" 
+                danger
                 icon={<PlusOutlined />} 
                 onClick={() => {
                   setEditingRule(null);

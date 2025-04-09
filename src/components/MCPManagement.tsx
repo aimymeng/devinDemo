@@ -4,7 +4,7 @@ import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import { MCPService } from '../types/mcp';
 import MCPServiceCard from './MCPServiceCard';
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 const { Search } = Input;
 
@@ -118,10 +118,8 @@ const initialServices: MCPService[] = [
 
 const MCPManagement: React.FC = () => {
   const [services, setServices] = useState<MCPService[]>(initialServices);
-  const [searchText, setSearchText] = useState('');
-
+  
   const handleSearch = (value: string) => {
-    setSearchText(value);
     if (!value) {
       setServices(initialServices);
       return;
@@ -138,28 +136,7 @@ const MCPManagement: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#f5f7fa' }}>
-      <Header style={{ 
-        background: '#fff', 
-        padding: '0 24px', 
-        display: 'flex', 
-        alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          height: '100%', 
-          flex: 1 
-        }}>
-          <Title level={4} style={{ margin: 0, marginRight: '24px' }}>
-            MCP 🔥
-          </Title>
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <Text style={{ fontSize: '16px', cursor: 'pointer' }}>文档</Text>
-            <Text style={{ fontSize: '16px', cursor: 'pointer' }}>API参考</Text>
-          </div>
-        </div>
-      </Header>
+      {/* Header removed as requested */}
       
       <Content style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ 

@@ -13,6 +13,7 @@ export default defineConfig({
     },
     allowedHosts: [
       'github-demo-app-tunnel-6tnnq4bx.devinapps.com',
+      'github-demo-app-tunnel-919xe89p.devinapps.com',
       'github-demo-app-tunnel-*.devinapps.com'
     ]
   },

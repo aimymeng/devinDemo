@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Button, message, Tabs } from 'antd';
+import { Layout, Typography, Button, message, Menu } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Prompt } from './types';
 import { CursorRule } from './types/cursorrule';
@@ -11,7 +11,6 @@ import MCPManagement from './components/MCPManagement';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
-const { TabPane } = Tabs;
 
 const initialPrompts: Prompt[] = [
   { id: '1', title: '客户服务问题', content: '您好，我是客服助手，请问有什么可以帮您解决的问题？', tags: ['客服', '问候'] },
@@ -103,89 +102,98 @@ const App: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <Title level={3} style={{ margin: 0 }}>管理系统</Title>
+          <Title level={3} style={{ margin: 0, marginRight: '48px' }}>管理系统</Title>
+          <Menu
+            mode="horizontal"
+            selectedKeys={[activeTab]}
+            style={{ flex: 1, border: 'none' }}
+            onSelect={({ key }) => setActiveTab(key as string)}
+            items={[
+              { key: '1', label: 'Prompt 管理' },
+              { key: '2', label: 'CursorRule 管理' },
+              { key: '3', label: 'MCP 管理' }
+            ]}
+          />
         </div>
       </Header>
       <Content style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab}
-          type="card"
-          style={{ marginBottom: 24 }}
-        >
-          <TabPane tab="Prompt 管理" key="1">
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '2px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <Title level={4} style={{ margin: 0 }}>Prompt 列表</Title>
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  onClick={() => {
-                    setEditingPrompt(null);
-                    setIsPromptFormVisible(true);
-                  }}
-                >
-                  添加新 Prompt
-                </Button>
-              </div>
-              
-              {isPromptFormVisible ? (
-                <PromptForm 
-                  onSubmit={editingPrompt ? handleEditPrompt : handleAddPrompt} 
-                  initialData={editingPrompt}
-                  onCancel={() => {
-                    setIsPromptFormVisible(false);
-                    setEditingPrompt(null);
-                  }}
-                />
-              ) : (
-                <PromptList 
-                  prompts={prompts} 
-                  onEdit={startEditingPrompt} 
-                  onDelete={handleDeletePrompt} 
-                />
-              )}
+        {/* Prompt Management */}
+        <div style={{ display: activeTab === '1' ? 'block' : 'none' }}>
+          <div style={{ background: '#fff', padding: '24px', borderRadius: '2px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <Title level={4} style={{ margin: 0 }}>Prompt 列表</Title>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => {
+                  setEditingPrompt(null);
+                  setIsPromptFormVisible(true);
+                }}
+              >
+                添加新 Prompt
+              </Button>
             </div>
-          </TabPane>
-          <TabPane tab="CursorRule 管理" key="2">
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '2px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <Title level={4} style={{ margin: 0 }}>规则列表</Title>
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  onClick={() => {
-                    setEditingRule(null);
-                    setIsRuleFormVisible(true);
-                  }}
-                >
-                  添加新规则
-                </Button>
-              </div>
-              
-              {isRuleFormVisible ? (
-                <CursorRuleForm 
-                  onSubmit={editingRule ? handleEditRule : handleAddRule} 
-                  initialData={editingRule}
-                  onCancel={() => {
-                    setIsRuleFormVisible(false);
-                    setEditingRule(null);
-                  }}
-                />
-              ) : (
-                <CursorRuleList 
-                  rules={rules} 
-                  onEdit={startEditingRule} 
-                  onDelete={handleDeleteRule}
-                  onToggleActive={handleToggleRuleActive}
-                />
-              )}
+            
+            {isPromptFormVisible ? (
+              <PromptForm 
+                onSubmit={editingPrompt ? handleEditPrompt : handleAddPrompt} 
+                initialData={editingPrompt}
+                onCancel={() => {
+                  setIsPromptFormVisible(false);
+                  setEditingPrompt(null);
+                }}
+              />
+            ) : (
+              <PromptList 
+                prompts={prompts} 
+                onEdit={startEditingPrompt} 
+                onDelete={handleDeletePrompt} 
+              />
+            )}
+          </div>
+        </div>
+        
+        {/* CursorRule Management */}
+        <div style={{ display: activeTab === '2' ? 'block' : 'none' }}>
+          <div style={{ background: '#fff', padding: '24px', borderRadius: '2px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <Title level={4} style={{ margin: 0 }}>规则列表</Title>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => {
+                  setEditingRule(null);
+                  setIsRuleFormVisible(true);
+                }}
+              >
+                添加新规则
+              </Button>
             </div>
-          </TabPane>
-          <TabPane tab="MCP 管理" key="3">
-            <MCPManagement />
-          </TabPane>
-        </Tabs>
+            
+            {isRuleFormVisible ? (
+              <CursorRuleForm 
+                onSubmit={editingRule ? handleEditRule : handleAddRule} 
+                initialData={editingRule}
+                onCancel={() => {
+                  setIsRuleFormVisible(false);
+                  setEditingRule(null);
+                }}
+              />
+            ) : (
+              <CursorRuleList 
+                rules={rules} 
+                onEdit={startEditingRule} 
+                onDelete={handleDeleteRule}
+                onToggleActive={handleToggleRuleActive}
+              />
+            )}
+          </div>
+        </div>
+        
+        {/* MCP Management */}
+        <div style={{ display: activeTab === '3' ? 'block' : 'none' }}>
+          <MCPManagement />
+        </div>
       </Content>
     </Layout>
   );

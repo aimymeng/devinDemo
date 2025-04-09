@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import { Layout, Typography, Button, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Prompt } from './types';
 import PromptList from './components/PromptList';
 import PromptForm from './components/PromptForm';
-import { Prompt } from './types';
+
+const { Header, Content } = Layout;
+const { Title } = Typography;
 
 const initialPrompts: Prompt[] = [
   { id: '1', title: '客户服务问题', content: '您好，我是客服助手，请问有什么可以帮您解决的问题？', tags: ['客服', '问候'] },
@@ -21,6 +26,7 @@ const App: React.FC = () => {
     };
     setPrompts([...prompts, prompt]);
     setIsFormVisible(false);
+    message.success('Prompt 添加成功！');
   };
 
   const handleEditPrompt = (updatedPrompt: Prompt | Omit<Prompt, 'id'>) => {
@@ -28,11 +34,13 @@ const App: React.FC = () => {
       setPrompts(prompts.map(p => p.id === updatedPrompt.id ? updatedPrompt as Prompt : p));
       setEditingPrompt(null);
       setIsFormVisible(false);
+      message.success('Prompt 更新成功！');
     }
   };
 
   const handleDeletePrompt = (id: string) => {
     setPrompts(prompts.filter(p => p.id !== id));
+    message.success('Prompt 删除成功！');
   };
 
   const startEditing = (prompt: Prompt) => {
@@ -41,25 +49,26 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Prompt 管理系统</h1>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Title level={3} style={{ margin: 0 }}>Prompt 管理系统</Title>
         </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Prompt 列表</h2>
-            <button
+      </Header>
+      <Content style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ background: '#fff', padding: '24px', borderRadius: '2px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <Title level={4} style={{ margin: 0 }}>Prompt 列表</Title>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
               onClick={() => {
                 setEditingPrompt(null);
                 setIsFormVisible(true);
               }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               添加新 Prompt
-            </button>
+            </Button>
           </div>
           
           {isFormVisible ? (
@@ -79,8 +88,8 @@ const App: React.FC = () => {
             />
           )}
         </div>
-      </main>
-    </div>
+      </Content>
+    </Layout>
   );
 };
 

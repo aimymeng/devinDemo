@@ -1,5 +1,9 @@
 import React from 'react';
+import { List, Card, Tag, Space, Button, Popconfirm, Typography } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Prompt } from '../types';
+
+const { Paragraph } = Typography;
 
 interface PromptListProps {
   prompts: Prompt[];
@@ -9,52 +13,54 @@ interface PromptListProps {
 
 const PromptList: React.FC<PromptListProps> = ({ prompts, onEdit, onDelete }) => {
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul className="divide-y divide-gray-200">
-        {prompts.length === 0 ? (
-          <li className="px-6 py-4 text-center text-gray-500">
-            暂无 Prompt，请添加新的 Prompt
-          </li>
-        ) : (
-          prompts.map((prompt) => (
-            <li key={prompt.id} className="px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-medium text-gray-900 truncate">{prompt.title}</h3>
-                  <div className="mt-1">
-                    <p className="text-sm text-gray-500 line-clamp-2">{prompt.content}</p>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {prompt.tags.map((tag, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="ml-4 flex-shrink-0 flex">
-                  <button
-                    onClick={() => onEdit(prompt)}
-                    className="mr-2 inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    onClick={() => onDelete(prompt.id)}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+    <List
+      grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 3 }}
+      dataSource={prompts}
+      locale={{ emptyText: '暂无 Prompt，请添加新的 Prompt' }}
+      renderItem={(prompt) => (
+        <List.Item>
+          <Card
+            title={prompt.title}
+            extra={
+              <Space>
+                <Button 
+                  type="text" 
+                  icon={<EditOutlined />} 
+                  onClick={() => onEdit(prompt)}
+                >
+                  编辑
+                </Button>
+                <Popconfirm
+                  title="确定要删除这个 Prompt 吗？"
+                  okText="确定"
+                  cancelText="取消"
+                  onConfirm={() => onDelete(prompt.id)}
+                >
+                  <Button 
+                    type="text" 
+                    danger 
+                    icon={<DeleteOutlined />}
                   >
                     删除
-                  </button>
-                </div>
-              </div>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+                  </Button>
+                </Popconfirm>
+              </Space>
+            }
+          >
+            <Paragraph ellipsis={{ rows: 3, expandable: true, symbol: '展开' }}>
+              {prompt.content}
+            </Paragraph>
+            <div style={{ marginTop: 16 }}>
+              {prompt.tags.map((tag, index) => (
+                <Tag color="blue" key={index} style={{ marginBottom: 8 }}>
+                  {tag}
+                </Tag>
+              ))}
+            </div>
+          </Card>
+        </List.Item>
+      )}
+    />
   );
 };
 

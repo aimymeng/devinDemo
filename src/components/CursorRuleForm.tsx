@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Typography, Space, Card, Switch } from 'antd';
+import { Form, Input, Button, Typography, Space, Switch } from 'antd';
 import { CursorRule } from '../types/cursorrule';
 
 const { Title } = Typography;
@@ -47,7 +47,7 @@ const CursorRuleForm: React.FC<CursorRuleFormProps> = ({ onSubmit, initialData, 
   };
 
   return (
-    <Card>
+    <div style={{ width: '100%' }}>
       <Title level={4} style={{ marginBottom: 24 }}>
         {initialData ? '编辑规则' : '添加新规则'}
       </Title>
@@ -105,7 +105,7 @@ const CursorRuleForm: React.FC<CursorRuleFormProps> = ({ onSubmit, initialData, 
           </Space>
         </Form.Item>
       </Form>
-    </Card>
+    </div>
   );
 };
 

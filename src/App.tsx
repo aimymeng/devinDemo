@@ -7,6 +7,7 @@ import PromptList from './components/PromptList';
 import PromptForm from './components/PromptForm';
 import CursorRuleList from './components/CursorRuleList';
 import CursorRuleForm from './components/CursorRuleForm';
+import MCPManagement from './components/MCPManagement';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -180,6 +181,9 @@ const App: React.FC = () => {
                 />
               )}
             </div>
+          </TabPane>
+          <TabPane tab="MCP 管理" key="3">
+            <MCPManagement />
           </TabPane>
         </Tabs>
       </Content>

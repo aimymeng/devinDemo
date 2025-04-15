@@ -3,23 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mind Map Test</title>
+    <title>XMind-like Mind Map</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Import G6 -->
+    <script src="https://gw.alipayobjects.com/os/lib/antv/g6/4.8.24/dist/g6.min.js"></script>
+    <!-- Import Hierarchy for tree layout -->
+    <script src="https://gw.alipayobjects.com/os/lib/antv/hierarchy/0.6.8/dist/hierarchy.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>Mind Map Test</h1>
+        <h1>XMind-like Mind Map</h1>
+        <div class="toolbar">
+            <button id="new-map">New Map</button>
+            <button id="save-map">Save Map</button>
+            <button id="load-map">Load Map</button>
+            <button id="export-image">Export Image</button>
+            <button id="undo">Undo</button>
+            <button id="redo">Redo</button>
+        </div>
     </header>
     <main>
-        <div id="mind-map-container">
-            <!-- Mind map will be rendered here -->
+        <div class="sidebar">
+            <div class="node-operations">
+                <h3>Node Operations</h3>
+                <button id="add-child">Add Child Node</button>
+                <button id="add-sibling">Add Sibling Node</button>
+                <button id="remove-node">Remove Node</button>
+                <button id="collapse-expand">Collapse/Expand</button>
+            </div>
+            <div class="node-properties">
+                <h3>Node Properties</h3>
+                <div class="property-group">
+                    <label for="node-text">Text:</label>
+                    <input type="text" id="node-text" placeholder="Node text">
+                </div>
+                <div class="property-group">
+                    <label for="node-desc">Description:</label>
+                    <textarea id="node-desc" placeholder="Node description"></textarea>
+                </div>
+                <div class="property-group">
+                    <label for="node-tags">Tags:</label>
+                    <div class="tags-container">
+                        <input type="text" id="node-tag-input" placeholder="Add tag">
+                        <button id="add-tag">+</button>
+                    </div>
+                    <div id="tags-list" class="tags-list"></div>
+                </div>
+                <div class="property-group">
+                    <label>Node Style:</label>
+                    <div class="style-options">
+                        <div class="color-picker">
+                            <span>Color:</span>
+                            <input type="color" id="node-color" value="#4D9DE0">
+                        </div>
+                        <div class="shape-picker">
+                            <span>Shape:</span>
+                            <select id="node-shape">
+                                <option value="rect">Rectangle</option>
+                                <option value="ellipse">Ellipse</option>
+                                <option value="diamond">Diamond</option>
+                                <option value="hexagon">Hexagon</option>
+                                <option value="star">Star</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-group">
+                    <label>Node Priority:</label>
+                    <div class="priority-options">
+                        <select id="node-priority">
+                            <option value="none">None</option>
+                            <option value="1">Priority 1</option>
+                            <option value="2">Priority 2</option>
+                            <option value="3">Priority 3</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="apply-properties">Apply Changes</button>
+            </div>
+            <div class="layout-options">
+                <h3>Layout Options</h3>
+                <div class="property-group">
+                    <label for="layout-direction">Direction:</label>
+                    <select id="layout-direction">
+                        <option value="H">Horizontal</option>
+                        <option value="V">Vertical</option>
+                        <option value="LR">Left to Right</option>
+                        <option value="RL">Right to Left</option>
+                        <option value="TB">Top to Bottom</option>
+                        <option value="BT">Bottom to Top</option>
+                    </select>
+                </div>
+                <button id="apply-layout">Apply Layout</button>
+            </div>
         </div>
-        <div class="controls">
-            <button id="add-node">Add Node</button>
-            <button id="remove-node">Remove Node</button>
-            <button id="save-map">Save Map</button>
+        <div class="canvas-container">
+            <div id="mind-map-container"></div>
+            <div class="zoom-controls">
+                <button id="zoom-in">+</button>
+                <button id="zoom-out">-</button>
+                <button id="zoom-fit">Fit</button>
+            </div>
+            <div class="minimap" id="minimap"></div>
         </div>
     </main>
+    <div id="context-menu" class="context-menu">
+        <ul>
+            <li data-action="add-child">Add Child Node</li>
+            <li data-action="add-sibling">Add Sibling Node</li>
+            <li data-action="edit">Edit Node</li>
+            <li data-action="delete">Delete Node</li>
+            <li data-action="collapse">Collapse/Expand</li>
+            <li data-action="copy">Copy</li>
+            <li data-action="paste">Paste</li>
+            <li data-action="cut">Cut</li>
+        </ul>
+    </div>
+    <div id="node-tooltip" class="node-tooltip"></div>
     <script src="app.js"></script>
 </body>
 </html>

@@ -12,5 +12,10 @@
     "visualization"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@antv/dom-util": "^2.0.4",
+    "@antv/g6": "^5.0.45",
+    "@antv/hierarchy": "^0.6.14"
+  }
 }

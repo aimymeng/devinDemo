@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const defaultMindMap = {
         id: 'root',
         label: 'Central Topic',
-        title: '思维导图',
+        title: 'Mind Map',
+        priority: 'P1',
         type: 'rect',
         style: {
             fill: '#4D9DE0',
@@ -94,8 +95,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function initGraph() {
         G6.registerNode('xmind-node', {
-            draw: (cfg, group) => {
+            afterUpdate: function(cfg, node) {
+                const group = node.getContainer();
+                group.clear();
+                console.log('Node afterUpdate called with:', cfg);
+                return this.draw(cfg, group);
+            },
+            draw: function(cfg, group) {
                 const { id, label, title, description, tags, priority, collapsed, style = {} } = cfg;
+                console.log('Drawing node with:', { id, label, title, priority, tags });
+                
+                // Create a main group for the node with high z-index
+                const mainGroup = group.addGroup({
+                    name: 'main-node-group',
+                    zIndex: 10
+                });
                 
                 const nodeStyle = {
                     fill: '#4D9DE0',
@@ -104,40 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ...style
                 };
                 
-                let titleShape;
-                if (title) {
-                    group.addShape('rect', {
-                        attrs: {
-                            x: 0,
-                            y: -24,
-                            width: Math.min(title.length * 12 + 16, width),
-                            height: 20,
-                            radius: 4,
-                            fill: '#f0f0f0',
-                            stroke: '#d0d0d0',
-                            lineWidth: 1
-                        },
-                        name: 'title-bg'
-                    });
-                    
-                    titleShape = group.addShape('text', {
-                        attrs: {
-                            text: title,
-                            x: 8,
-                            y: -16,
-                            fontFamily: 'Segoe UI',
-                            fill: '#333',
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                            textAlign: 'left',
-                            textBaseline: 'middle',
-                            cursor: 'pointer'
-                        },
-                        name: 'title-shape'
-                    });
-                }
-                
-                const labelShape = group.addShape('text', {
+                const labelShape = mainGroup.addShape('text', {
                     attrs: {
                         text: label || 'Topic',
                         x: 0,
@@ -156,9 +137,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 const width = Math.max(labelBBox.width + 24, 80);
                 const height = labelBBox.height + 16;
                 
+                let titleShape;
+                if (title) {
+                    console.log('Adding title to node:', title);
+                    // Title background at the top of the node
+                    mainGroup.addShape('rect', {
+                        attrs: {
+                            x: 0,
+                            y: -24, // Position above the node
+                            width: width,
+                            height: 20,
+                            radius: 4,
+                            fill: '#e6f7ff',
+                            stroke: '#1890ff',
+                            lineWidth: 1,
+                            opacity: 1
+                        },
+                        name: 'title-bg',
+                        zIndex: 200 // Extremely high z-index to ensure visibility
+                    });
+                    
+                    titleShape = mainGroup.addShape('text', {
+                        attrs: {
+                            text: title,
+                            x: 8,
+                            y: -14, // Center in background above the node
+                            fontFamily: 'Segoe UI',
+                            fill: '#333',
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            textAlign: 'left',
+                            textBaseline: 'middle',
+                            cursor: 'pointer',
+                            opacity: 1
+                        },
+                        name: 'title-shape',
+                        zIndex: 205 // Extremely high z-index to ensure visibility
+                    });
+                    
+                    labelShape.attr({
+                        x: 12,
+                        y: 8 // Original position
+                    });
+                }
+                
                 let keyShape;
                 if (cfg.type === 'ellipse') {
-                    keyShape = group.addShape('ellipse', {
+                    keyShape = mainGroup.addShape('ellipse', {
                         attrs: {
                             x: width / 2,
                             y: height / 2,
@@ -171,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (cfg.type === 'diamond') {
                     const diamondWidth = width * 1.2;
                     const diamondHeight = height * 1.2;
-                    keyShape = group.addShape('polygon', {
+                    keyShape = mainGroup.addShape('polygon', {
                         attrs: {
                             points: [
                                 [0, diamondHeight / 2],
@@ -186,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (cfg.type === 'hexagon') {
                     const hexWidth = width * 1.1;
                     const hexHeight = height * 1.2;
-                    keyShape = group.addShape('polygon', {
+                    keyShape = mainGroup.addShape('polygon', {
                         attrs: {
                             points: [
                                 [hexWidth * 0.25, 0],
@@ -221,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ]);
                     }
                     
-                    keyShape = group.addShape('polygon', {
+                    keyShape = mainGroup.addShape('polygon', {
                         attrs: {
                             points,
                             ...nodeStyle
@@ -229,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'key-shape'
                     });
                 } else {
-                    keyShape = group.addShape('rect', {
+                    keyShape = mainGroup.addShape('rect', {
                         attrs: {
                             x: 0,
                             y: 0,
@@ -247,21 +272,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (priority && priority !== 'none') {
+                    console.log('Adding priority to node:', priority);
                     const priorityColors = {
                         'P0': '#e74c3c',  // P0 - Red
                         'P1': '#f39c12',  // P1 - Orange
                         'P2': '#3498db'   // P2 - Blue
                     };
                     
-                    group.addShape('rect', {
+                    // Priority indicator on the left side
+                    mainGroup.addShape('rect', {
                         attrs: {
                             x: 0,
                             y: 0,
                             width: 4,
                             height: height,
-                            fill: priorityColors[priority]
+                            fill: priorityColors[priority],
+                            opacity: 0.9
                         },
-                        name: 'priority-indicator'
+                        name: 'priority-indicator',
+                        zIndex: 90
                     });
                     
                     const priorityLabels = {
@@ -271,36 +300,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     
                     // Priority label at the bottom of the node
-                    group.addShape('rect', {
+                    mainGroup.addShape('rect', {
                         attrs: {
-                            x: 4,
-                            y: height - 22,
+                            x: width - 30,
+                            y: height + 4, // Position below the node
                             width: 26,
                             height: 18,
                             radius: 9,
                             fill: priorityColors[priority],
-                            stroke: 'none'
+                            stroke: 'none',
+                            opacity: 1
                         },
-                        name: 'priority-label-bg'
+                        name: 'priority-label-bg',
+                        zIndex: 210 // Extremely high z-index to ensure visibility
                     });
                     
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: priorityLabels[priority],
-                            x: 17,
-                            y: height - 13,
+                            x: width - 17,
+                            y: height + 13, // Position below the node
                             fontSize: 12,
                             fontWeight: 'bold',
                             fill: '#fff',
                             textAlign: 'center',
-                            textBaseline: 'middle'
+                            textBaseline: 'middle',
+                            opacity: 1
                         },
-                        name: 'priority-label-text'
+                        name: 'priority-label-text',
+                        zIndex: 215 // Extremely high z-index to ensure visibility
                     });
                 }
                 
                 if (description) {
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: '📝',
                             x: width - 16,
@@ -314,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 if (collapsed && cfg.children && cfg.children.length > 0) {
-                    group.addShape('circle', {
+                    mainGroup.addShape('circle', {
                         attrs: {
                             x: width,
                             y: height / 2,
@@ -326,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'collapsed-indicator'
                     });
                     
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: '+',
                             x: width - 3,
@@ -340,13 +373,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
+                // Move tags to the top of the node
                 if (tags && tags.length > 0) {
-                    const tagsContainer = group.addGroup({
-                        name: 'tags-container'
+                    const tagsContainer = mainGroup.addGroup({
+                        name: 'tags-container',
+                        zIndex: 120 // Significantly increased z-index to ensure visibility
                     });
                     
                     let tagX = 0;
-                    let tagY = -24; // Position tags at the top of the node
+                    let tagY = -30; // Position tags further above the node
                     
                     tags.forEach((tag, index) => {
                         const tagColors = {
@@ -377,7 +412,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 shadowOffsetX: 0,
                                 shadowOffsetY: 1
                             },
-                            name: `tag-bg-${index}`
+                            name: `tag-bg-${index}`,
+                            zIndex: 51
                         });
                         
                         tagsContainer.addShape('text', {
@@ -390,7 +426,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 fill: '#fff',
                                 textBaseline: 'middle'
                             },
-                            name: `tag-text-${index}`
+                            name: `tag-text-${index}`,
+                            zIndex: 220 // Extremely high z-index to ensure visibility
                         });
                         
                         tagX += tag.length * 7 + 12;
@@ -401,12 +438,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                return keyShape;
+                return mainGroup;
             },
             
             update: (cfg, item) => {
                 const group = item.getContainer();
                 const keyShape = item.getKeyShape();
+                
+                let mainGroup = group.find(element => element.get('name') === 'main-node-group');
+                if (!mainGroup) {
+                    mainGroup = group.addGroup({
+                        name: 'main-node-group',
+                        zIndex: 10
+                    });
+                }
+                
                 const labelShape = group.find(element => element.get('name') === 'label-shape');
                 const titleShape = group.find(element => element.get('name') === 'title-shape');
                 const oldPriorityIndicator = group.find(element => element.get('name') === 'priority-indicator');
@@ -426,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         titleShape.remove();
                     }
                 } else if (cfg.title) {
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: cfg.title,
                             x: 0,
@@ -465,20 +511,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (cfg.priority && cfg.priority !== 'none') {
                     const priorityColors = {
-                        '1': '#e74c3c',
-                        '2': '#f39c12',
-                        '3': '#3498db'
+                        'P0': '#e74c3c',
+                        'P1': '#f39c12',
+                        'P2': '#3498db'
                     };
                     
                     const priorityLabels = {
-                        '1': 'P0',
-                        '2': 'P1',
-                        '3': 'P2'
+                        'P0': 'P0',
+                        'P1': 'P1',
+                        'P2': 'P2'
                     };
                     
                     const bbox = keyShape.getBBox();
                     
-                    group.addShape('rect', {
+                    mainGroup.addShape('rect', {
                         attrs: {
                             x: 0,
                             y: 0,
@@ -489,10 +535,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'priority-indicator'
                     });
                     
-                    group.addShape('rect', {
+                    mainGroup.addShape('rect', {
                         attrs: {
-                            x: bbox.width - 30,
-                            y: 4,
+                            x: 4,
+                            y: bbox.height - 22,
                             width: 26,
                             height: 18,
                             radius: 9,
@@ -502,11 +548,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'priority-label-bg'
                     });
                     
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: priorityLabels[cfg.priority],
-                            x: bbox.width - 17,
-                            y: 13,
+                            x: 17,
+                            y: bbox.height - 13,
                             fontSize: 12,
                             fontWeight: 'bold',
                             fill: '#fff',
@@ -524,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (cfg.description) {
                     const bbox = keyShape.getBBox();
                     
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: '📝',
                             x: bbox.width - 16,
@@ -548,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (cfg.collapsed && cfg.children && cfg.children.length > 0) {
                     const bbox = keyShape.getBBox();
                     
-                    group.addShape('circle', {
+                    mainGroup.addShape('circle', {
                         attrs: {
                             x: bbox.width,
                             y: bbox.height / 2,
@@ -560,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'collapsed-indicator'
                     });
                     
-                    group.addShape('text', {
+                    mainGroup.addShape('text', {
                         attrs: {
                             text: '+',
                             x: bbox.width - 3,
@@ -580,12 +626,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (cfg.tags && cfg.tags.length > 0) {
                     const bbox = keyShape.getBBox();
-                    const tagsContainer = group.addGroup({
+                    const tagsContainer = mainGroup.addGroup({
                         name: 'tags-container'
                     });
                     
-                    let tagX = 12;
-                    let tagY = bbox.height - 24;
+                    let tagX = 0;
+                    let tagY = -24; // Position tags at the top of the node
                     
                     cfg.tags.forEach((tag, index) => {
                         const tagColors = {
@@ -714,23 +760,19 @@ document.addEventListener('DOMContentLoaded', function() {
             
             hideContextMenu();
             
-            console.log('Implementing direct popover display for node click');
-            
-            if (!document.getElementById('node-popover')) {
-                console.error('Popover element not found, creating it dynamically');
-                nodePopover = createPopoverElement();
-                popoverClose = nodePopover.querySelector('.popover-close');
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.add('visible');
+                console.log('Added visible class to sidebar');
             }
             
-            const popover = document.getElementById('node-popover');
+            console.log('Implementing direct popover display for node click');
+            
+            nodePopover = document.getElementById('node-popover');
+            popoverClose = nodePopover.querySelector('.popover-close');
+            const popover = nodePopover;
+            
             if (popover) {
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                
-                popover.style.zIndex = '9999';
-                popover.style.position = 'fixed';
-                popover.style.display = 'block';
-                
                 const nodeBox = item.getBBox();
                 const nodeGroup = item.getContainer();
                 const { x, y } = nodeGroup.getCanvasBBox();
@@ -741,13 +783,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 let left = canvasRect.left + x + (nodeBox.width / 2) - 150; // Center popover horizontally
                 let top = canvasRect.top + y - 150; // Position above the node
                 
-                if (left < 10) left = 10;
-                if (left + 300 > viewportWidth) left = viewportWidth - 310;
-                if (top < 10) top = 10;
-                if (top + 150 > canvasRect.top + y - 10) top = canvasRect.top + y - 160; // Ensure it's above the node
+                showNodePopover(left, top, model, evt);
                 
-                popover.style.left = `${left}px`;
-                popover.style.top = `${top}px`;
+                popover.style.display = 'block';
+                popover.style.zIndex = '9999';
                 
                 console.log('Direct popover positioned at:', { 
                     left: popover.style.left, 
@@ -785,16 +824,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                 }
                 
-                evt.stopPropagation();
+                // evt.stopPropagation();
                 
                 document.removeEventListener('click', handlePopoverOutsideClick);
-                document.addEventListener('click', handlePopoverOutsideClick);
+                setTimeout(() => {
+                    document.addEventListener('click', handlePopoverOutsideClick);
+                }, 100);
+                
+                popover.style.display = 'block';
+                popover.style.zIndex = '9999';
                 
                 console.log('Direct popover setup complete');
             }
         });
         
         function createPopoverElement() {
+            const existingPopover = document.getElementById('node-popover');
+            if (existingPopover) {
+                console.log('Using existing popover element');
+                return existingPopover;
+            }
+            
+            // Create new popover if it doesn't exist
             const popover = document.createElement('div');
             popover.id = 'node-popover';
             popover.className = 'node-popover';
@@ -1101,16 +1152,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNodePopover(x, y, node, evt) {
         console.log('showNodePopover called:', { x, y, node });
         
-        if (!document.getElementById('node-popover')) {
-            console.error('Popover element not found in showNodePopover, creating it dynamically');
-            nodePopover = createPopoverElement();
-            popoverClose = nodePopover.querySelector('.popover-close');
-        }
-        
         const popover = document.getElementById('node-popover');
+        nodePopover = popover;
         
         if (!popover) {
-            console.error('Popover element still not found after creation attempt');
+            console.error('Popover element not found in showNodePopover');
             return;
         }
         
@@ -1129,14 +1175,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             
-            let left = x + 10;
-            let top = y + 10;
+            // Position above the node
+            let left = x;
+            let top = y - 200; // Position well above the node
             
             if (left + 300 > viewportWidth) left = viewportWidth - 310;
-            if (top + 300 > viewportHeight) top = viewportHeight - 310;
+            if (left < 10) left = 10;
+            if (top < 10) top = 10;
             
             nodePopover.style.left = `${left}px`;
             nodePopover.style.top = `${top}px`;
+            
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.add('visible');
+            }
+            
+            document.addEventListener('click', handlePopoverOutsideClick);
             
             if (evt && evt.stopPropagation) {
                 evt.stopPropagation();
@@ -1241,11 +1296,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         nodePopover.style.display = 'none';
         document.removeEventListener('click', handlePopoverOutsideClick);
+        
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.classList.remove('visible');
+        }
     }
     
     function handlePopoverOutsideClick(event) {
-        if (nodePopover && !nodePopover.contains(event.target) && event.target.closest('.g6-node') === null) {
+        console.log('Outside click handler called', event.target);
+        if (nodePopover && !nodePopover.contains(event.target) && !event.target.closest('.g6-node') && !event.target.closest('.sidebar')) {
             hideNodePopover();
+            
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('visible');
+                console.log('Removed visible class from sidebar');
+            }
         }
     }
     
@@ -1316,17 +1383,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 priority: priority
             });
             
-            graph.changeData(mindMapData);
-            graph.refresh();
+            // Force a node redraw to ensure visual elements are updated
+            graph.refreshItem(nodeId);
             
             mindMapData = graph.save();
             
             // Update the node properties panel
             if (nodePrioritySelect) {
                 const priorityMap = {
-                    'P0': '1',
-                    'P1': '2',
-                    'P2': '3'
+                    'P0': 'P0',
+                    'P1': 'P1',
+                    'P2': 'P2'
                 };
                 
                 if (Array.from(nodePrioritySelect.options).some(opt => opt.value === priority)) {
@@ -1401,6 +1468,9 @@ document.addEventListener('DOMContentLoaded', function() {
             graph.updateItem(nodeId, {
                 title: title
             });
+            
+            // Force a node redraw to ensure visual elements are updated
+            graph.refreshItem(nodeId);
             
             mindMapData = graph.save();
             
@@ -1524,6 +1594,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const newNode = {
             id: generateId(),
             label: 'New Topic',
+            title: 'New Title', // Add default title
+            priority: 'P1', // Default priority
             type: 'rect',
             style: {
                 fill: '#4D9DE0',
@@ -1536,23 +1608,20 @@ document.addEventListener('DOMContentLoaded', function() {
         parent.children.push(newNode);
         
         const currentZoom = graph.getZoom();
-        
         const matrix = graph.get('group').getMatrix();
         
-        graph.changeData(mindMapData);
+        graph.addItem('node', newNode);
+        
+        graph.addItem('edge', {
+            source: parentId,
+            target: newNode.id
+        });
+        
         history.saveState(graph.save());
         
-        const graphBBox = graph.get('group').getBBox();
-        const viewportWidth = graph.get('width');
-        const viewportHeight = graph.get('height');
-        
-        if (graphBBox.width <= viewportWidth && graphBBox.height <= viewportHeight) {
+        if (matrix) {
+            graph.get('group').setMatrix(matrix);
             graph.zoomTo(currentZoom);
-            
-            if (matrix) {
-                graph.get('group').setMatrix(matrix);
-                console.log('Maintained viewport after adding child node');
-            }
         }
         
         selectedNode = newNode.id;
@@ -1560,6 +1629,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (item) {
             graph.setItemState(item, 'selected', true);
             updateNodeProperties(newNode);
+            
+            graph.refreshItem(newNode.id);
         }
     }
     
@@ -1572,6 +1643,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const newNode = {
             id: generateId(),
             label: 'New Topic',
+            title: 'New Title', // Add default title
+            priority: 'P1', // Default priority
             type: 'rect',
             style: {
                 fill: '#4D9DE0',
@@ -1584,23 +1657,20 @@ document.addEventListener('DOMContentLoaded', function() {
         parent.children.push(newNode);
         
         const currentZoom = graph.getZoom();
-        
         const matrix = graph.get('group').getMatrix();
         
-        graph.changeData(mindMapData);
+        graph.addItem('node', newNode);
+        
+        graph.addItem('edge', {
+            source: parent.id,
+            target: newNode.id
+        });
+        
         history.saveState(graph.save());
         
-        const graphBBox = graph.get('group').getBBox();
-        const viewportWidth = graph.get('width');
-        const viewportHeight = graph.get('height');
-        
-        if (graphBBox.width <= viewportWidth && graphBBox.height <= viewportHeight) {
+        if (matrix) {
+            graph.get('group').setMatrix(matrix);
             graph.zoomTo(currentZoom);
-            
-            if (matrix) {
-                graph.get('group').setMatrix(matrix);
-                console.log('Maintained viewport after adding sibling node');
-            }
         }
         
         selectedNode = newNode.id;
@@ -1608,6 +1678,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (item) {
             graph.setItemState(item, 'selected', true);
             updateNodeProperties(newNode);
+            
+            graph.refreshItem(newNode.id);
         }
     }
     
@@ -1617,13 +1689,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const parent = findParentNode(mindMapData, nodeId);
         if (!parent) return;
         
+        // Update data model
         parent.children = parent.children.filter(child => child.id !== nodeId);
         
-        graph.changeData(mindMapData);
+        const currentZoom = graph.getZoom();
+        const matrix = graph.get('group').getMatrix();
+        
+        graph.removeItem(nodeId);
+        
         history.saveState(graph.save());
         
-        selectedNode = null;
-        clearNodeProperties();
+        if (matrix) {
+            graph.get('group').setMatrix(matrix);
+            graph.zoomTo(currentZoom);
+        }
+        
+        selectedNode = parent.id;
+        const item = graph.findById(parent.id);
+        if (item) {
+            graph.setItemState(item, 'selected', true);
+            updateNodeProperties(parent);
+            
+            graph.refreshItem(parent.id);
+        }
+        
+        hideNodePopover();
     }
     
     function toggleNodeCollapse(nodeId) {
@@ -1634,7 +1724,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         node.collapsed = !node.collapsed;
         
-        graph.changeData(mindMapData);
+        graph.updateItem(nodeId, { collapsed: node.collapsed });
+        graph.refreshItem(nodeId);
         history.saveState(graph.save());
         
         if (collapseExpandBtn) {
@@ -1690,6 +1781,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (item) {
             graph.setItemState(item, 'selected', true);
             updateNodeProperties(newNode);
+            
+            graph.refreshItem(newNode.id);
         }
     }
     
@@ -1809,59 +1902,67 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('New node model:', newModel);
         
-        // Force a complete redraw by removing and re-adding the node
+        // Update the node directly instead of removing and re-adding
         try {
-            const x = nodeModel.x;
-            const y = nodeModel.y;
-            const parent = findParentNode(mindMapData, selectedNode);
-            const children = mindMapData && mindMapData.nodes ? mindMapData.nodes.filter(n => n.parent === selectedNode) : [];
-            
-            graph.removeItem(selectedNode);
-            
-            // Add it back with the new properties
-            newModel.x = x;
-            newModel.y = y;
-            newModel.id = selectedNode; // Ensure ID is preserved
-            graph.addItem('node', newModel);
-            
-            if (parent) {
-                graph.addItem('edge', {
-                    source: parent.id,
-                    target: selectedNode,
-                    type: 'cubic-horizontal'
-                });
-            }
-            
-            children.forEach(child => {
-                graph.addItem('edge', {
-                    source: selectedNode,
-                    target: child.id,
-                    type: 'cubic-horizontal'
-                });
-            });
+            graph.updateItem(selectedNode, newModel);
             
             // Update the mindMapData
             mindMapData = graph.save();
             history.saveState(mindMapData);
             
-            // Force a refresh
-            graph.refresh();
+            // Force a refresh of just this node to ensure it's rendered correctly
+            graph.refreshItem(selectedNode);
             
             // Update the properties panel
             updateNodeProperties(newModel);
             
-            console.log('Node properties applied successfully with complete redraw');
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.add('visible');
+            }
+            
+            console.log('Node properties applied successfully with direct update');
         } catch (error) {
             console.error('Error applying node properties:', error);
             
-            console.log('Falling back to simple update');
-            graph.updateItem(selectedNode, newModel);
-            graph.refresh();
-            
-            mindMapData = graph.save();
-            history.saveState(mindMapData);
-            
-            updateNodeProperties(graphNode.getModel());
+            try {
+                const x = nodeModel.x;
+                const y = nodeModel.y;
+                const parent = findParentNode(mindMapData, selectedNode);
+                const children = mindMapData && mindMapData.nodes ? mindMapData.nodes.filter(n => n.parent === selectedNode) : [];
+                
+                graph.removeItem(selectedNode);
+                
+                // Add it back with the new properties
+                newModel.x = x;
+                newModel.y = y;
+                newModel.id = selectedNode; // Ensure ID is preserved
+                graph.addItem('node', newModel);
+                
+                if (parent) {
+                    graph.addItem('edge', {
+                        source: parent.id,
+                        target: selectedNode,
+                        type: 'cubic-horizontal'
+                    });
+                }
+                
+                children.forEach(child => {
+                    graph.addItem('edge', {
+                        source: selectedNode,
+                        target: child.id,
+                        type: 'cubic-horizontal'
+                    });
+                });
+                
+                mindMapData = graph.save();
+                history.saveState(mindMapData);
+                graph.refresh();
+                
+                updateNodeProperties(newModel);
+            } catch (fallbackError) {
+                console.error('Fallback error:', fallbackError);
+            }
         }
     }
     
@@ -2111,6 +2212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 popover.style.zIndex = '9999';
                 popover.style.position = 'fixed';
                 popover.style.display = 'block';
+                popover.setAttribute('style', popover.getAttribute('style') + '; display: block !important');
                 popover.style.left = `${viewportWidth / 2 - 150}px`;
                 popover.style.top = `${viewportHeight / 2 - 150}px`;
                 
@@ -2124,13 +2226,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const sampleNode = { id: 'debug', priority: 'P1', title: '用例标题' };
                 
                 setTimeout(() => {
-                    showNodePopover(
-                        parseInt(popover.style.left), 
-                        parseInt(popover.style.top), 
-                        sampleNode
-                    );
+                    // Update active states based on node properties
+                    updatePopoverActiveStates(sampleNode);
                     
-                    popover.style.display = 'block';
+                    const priorityLabels = popover.querySelectorAll('.priority-label');
+                    priorityLabels.forEach(label => {
+                        const priority = label.getAttribute('data-priority');
+                        label.onclick = function(e) {
+                            e.stopPropagation();
+                            applyPriorityToNode('debug', priority);
+                            updatePopoverActiveStates(sampleNode);
+                        };
+                    });
+                    
+                    const titleLabels = popover.querySelectorAll('.title-label');
+                    titleLabels.forEach(label => {
+                        const title = label.getAttribute('data-title');
+                        label.onclick = function(e) {
+                            e.stopPropagation();
+                            applyTitleToNode('debug', title);
+                            updatePopoverActiveStates(sampleNode);
+                        };
+                    });
+                    
+                    if (popoverClose) {
+                        popoverClose.onclick = function() {
+                            popover.style.display = 'none';
+                        };
+                    }
+                    
+                    document.removeEventListener('click', handlePopoverOutsideClick);
+                    document.addEventListener('click', handlePopoverOutsideClick);
+                    
                     
                     console.log('Debug popover setup complete with event handlers');
                 }, 100);
@@ -2162,12 +2289,29 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (e.key === 'Tab' && selectedNode) {
             e.preventDefault();
-            addChildBtn.click();
+            console.log('Tab key pressed, adding child node to', selectedNode);
+            if (addChildBtn) {
+                addChildBtn.click();
+            } else {
+                addChildNode(selectedNode);
+            }
         }
         
-        if (e.key === 'Enter' && selectedNode && selectedNode !== 'root') {
+        if (e.key === 'Enter' && selectedNode) {
             e.preventDefault();
-            addSiblingBtn.click();
+            console.log('Enter key pressed, selectedNode:', selectedNode);
+            
+            if (selectedNode === 'root') {
+                console.log('Root node selected, not adding sibling');
+                return;
+            }
+            
+            console.log('Adding sibling node to', selectedNode);
+            if (addSiblingBtn) {
+                addSiblingBtn.click();
+            } else {
+                addSiblingNode(selectedNode);
+            }
         }
         
         if ((e.key === 'Delete' || e.key === 'Backspace') && 

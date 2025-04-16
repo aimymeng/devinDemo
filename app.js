@@ -106,16 +106,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 let titleShape;
                 if (title) {
+                    group.addShape('rect', {
+                        attrs: {
+                            x: 0,
+                            y: -24,
+                            width: Math.min(title.length * 12 + 16, width),
+                            height: 20,
+                            radius: 4,
+                            fill: '#f0f0f0',
+                            stroke: '#d0d0d0',
+                            lineWidth: 1
+                        },
+                        name: 'title-bg'
+                    });
+                    
                     titleShape = group.addShape('text', {
                         attrs: {
                             text: title,
-                            x: 0,
-                            y: -20,
+                            x: 8,
+                            y: -16,
                             fontFamily: 'Segoe UI',
-                            fill: '#666',
+                            fill: '#333',
                             fontSize: 12,
+                            fontWeight: 'bold',
                             textAlign: 'left',
-                            textBaseline: 'top',
+                            textBaseline: 'middle',
                             cursor: 'pointer'
                         },
                         name: 'title-shape'
@@ -233,9 +248,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (priority && priority !== 'none') {
                     const priorityColors = {
-                        '1': '#e74c3c',
-                        '2': '#f39c12',
-                        '3': '#3498db'
+                        'P0': '#e74c3c',  // P0 - Red
+                        'P1': '#f39c12',  // P1 - Orange
+                        'P2': '#3498db'   // P2 - Blue
                     };
                     
                     group.addShape('rect', {
@@ -247,6 +262,39 @@ document.addEventListener('DOMContentLoaded', function() {
                             fill: priorityColors[priority]
                         },
                         name: 'priority-indicator'
+                    });
+                    
+                    const priorityLabels = {
+                        'P0': 'P0',
+                        'P1': 'P1',
+                        'P2': 'P2'
+                    };
+                    
+                    group.addShape('rect', {
+                        attrs: {
+                            x: width - 30,
+                            y: 4,
+                            width: 26,
+                            height: 18,
+                            radius: 9,
+                            fill: priorityColors[priority],
+                            stroke: 'none'
+                        },
+                        name: 'priority-label-bg'
+                    });
+                    
+                    group.addShape('text', {
+                        attrs: {
+                            text: priorityLabels[priority],
+                            x: width - 17,
+                            y: 13,
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            fill: '#fff',
+                            textAlign: 'center',
+                            textBaseline: 'middle'
+                        },
+                        name: 'priority-label-text'
                     });
                 }
                 
@@ -296,8 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'tags-container'
                     });
                     
-                    let tagX = 12;
-                    let tagY = height - 24;
+                    let tagX = 0;
+                    let tagY = height + 4;
                     
                     tags.forEach((tag, index) => {
                         const tagColors = {
@@ -317,10 +365,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             attrs: {
                                 x: tagX,
                                 y: tagY,
-                                width: tag.length * 6 + 8,
-                                height: 16,
+                                width: tag.length * 7 + 8,
+                                height: 20,
                                 fill: tagColor,
-                                radius: 8
+                                radius: 10,
+                                stroke: 'rgba(0,0,0,0.1)',
+                                lineWidth: 1,
+                                shadowColor: 'rgba(0,0,0,0.1)',
+                                shadowBlur: 2,
+                                shadowOffsetX: 0,
+                                shadowOffsetY: 1
                             },
                             name: `tag-bg-${index}`
                         });
@@ -329,18 +383,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             attrs: {
                                 text: tag,
                                 x: tagX + 4,
-                                y: tagY + 8,
-                                fontSize: 10,
+                                y: tagY + 10,
+                                fontSize: 11,
+                                fontWeight: 'bold',
                                 fill: '#fff',
                                 textBaseline: 'middle'
                             },
                             name: `tag-text-${index}`
                         });
                         
-                        tagX += tag.length * 6 + 12;
+                        tagX += tag.length * 7 + 12;
                         if (tagX > width - 20) {
-                            tagX = 12;
-                            tagY -= 20;
+                            tagX = 0;
+                            tagY += 24;
                         }
                     });
                 }
@@ -397,11 +452,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     oldPriorityIndicator.remove();
                 }
                 
+                const oldPriorityLabelBg = group.find(element => element.get('name') === 'priority-label-bg');
+                if (oldPriorityLabelBg) {
+                    oldPriorityLabelBg.remove();
+                }
+                
+                const oldPriorityLabelText = group.find(element => element.get('name') === 'priority-label-text');
+                if (oldPriorityLabelText) {
+                    oldPriorityLabelText.remove();
+                }
+                
                 if (cfg.priority && cfg.priority !== 'none') {
                     const priorityColors = {
                         '1': '#e74c3c',
                         '2': '#f39c12',
                         '3': '#3498db'
+                    };
+                    
+                    const priorityLabels = {
+                        '1': 'P0',
+                        '2': 'P1',
+                        '3': 'P2'
                     };
                     
                     const bbox = keyShape.getBBox();
@@ -415,6 +486,33 @@ document.addEventListener('DOMContentLoaded', function() {
                             fill: priorityColors[cfg.priority]
                         },
                         name: 'priority-indicator'
+                    });
+                    
+                    group.addShape('rect', {
+                        attrs: {
+                            x: bbox.width - 30,
+                            y: 4,
+                            width: 26,
+                            height: 18,
+                            radius: 9,
+                            fill: priorityColors[cfg.priority],
+                            stroke: 'none'
+                        },
+                        name: 'priority-label-bg'
+                    });
+                    
+                    group.addShape('text', {
+                        attrs: {
+                            text: priorityLabels[cfg.priority],
+                            x: bbox.width - 17,
+                            y: 13,
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            fill: '#fff',
+                            textAlign: 'center',
+                            textBaseline: 'middle'
+                        },
+                        name: 'priority-label-text'
                     });
                 }
                 
@@ -599,8 +697,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         graph.on('node:click', (evt) => {
+            console.log('Node clicked:', evt);
             const { item, clientX, clientY } = evt;
             const model = item.getModel();
+            console.log('Node model:', model);
             
             if (selectedNode && selectedNode !== model.id) {
                 graph.setItemState(graph.findById(selectedNode), 'selected', false);
@@ -613,7 +713,166 @@ document.addEventListener('DOMContentLoaded', function() {
             
             hideContextMenu();
             
-            showNodePopover(clientX, clientY, model);
+            console.log('Implementing direct popover display for node click');
+            
+            if (!document.getElementById('node-popover')) {
+                console.error('Popover element not found, creating it dynamically');
+                nodePopover = createPopoverElement();
+                popoverClose = nodePopover.querySelector('.popover-close');
+            }
+            
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                popover.style.zIndex = '9999';
+                popover.style.position = 'fixed';
+                popover.style.display = 'block';
+                
+                let left = clientX + 10;
+                let top = clientY + 10;
+                
+                if (left + 300 > viewportWidth) left = viewportWidth - 310;
+                if (top + 300 > viewportHeight) top = viewportHeight - 310;
+                
+                popover.style.left = `${left}px`;
+                popover.style.top = `${top}px`;
+                
+                console.log('Direct popover positioned at:', { 
+                    left: popover.style.left, 
+                    top: popover.style.top,
+                    display: popover.style.display,
+                    zIndex: popover.style.zIndex
+                });
+                
+                // Update active states based on node properties
+                updatePopoverActiveStates(model);
+                
+                const priorityLabels = popover.querySelectorAll('.priority-label');
+                priorityLabels.forEach(label => {
+                    const priority = label.getAttribute('data-priority');
+                    label.onclick = function(e) {
+                        e.stopPropagation();
+                        applyPriorityToNode(model.id, priority);
+                        updatePopoverActiveStates(model);
+                    };
+                });
+                
+                const titleLabels = popover.querySelectorAll('.title-label');
+                titleLabels.forEach(label => {
+                    const title = label.getAttribute('data-title');
+                    label.onclick = function(e) {
+                        e.stopPropagation();
+                        applyTitleToNode(model.id, title);
+                        updatePopoverActiveStates(model);
+                    };
+                });
+                
+                if (popoverClose) {
+                    popoverClose.onclick = function() {
+                        popover.style.display = 'none';
+                    };
+                }
+                
+                evt.stopPropagation();
+                
+                console.log('Direct popover setup complete');
+            }
+        });
+        
+        function createPopoverElement() {
+            const popover = document.createElement('div');
+            popover.id = 'node-popover';
+            popover.className = 'node-popover';
+            
+            popover.innerHTML = `
+                <div class="popover-header">
+                    <span class="popover-title">Node Properties</span>
+                    <span class="popover-close">&times;</span>
+                </div>
+                <div class="popover-content">
+                    <div class="popover-section">
+                        <div class="popover-section-title">Priority</div>
+                        <div class="popover-labels priority-labels">
+                            <span class="popover-label priority-label" data-priority="P0">P0</span>
+                            <span class="popover-label priority-label" data-priority="P1">P1</span>
+                            <span class="popover-label priority-label" data-priority="P2">P2</span>
+                        </div>
+                    </div>
+                    <div class="popover-section">
+                        <div class="popover-section-title">Title Type</div>
+                        <div class="popover-labels title-labels">
+                            <span class="popover-label title-label" data-title="用例标题">用例标题</span>
+                            <span class="popover-label title-label" data-title="前置条件">前置条件</span>
+                            <span class="popover-label title-label" data-title="步骤">步骤</span>
+                            <span class="popover-label title-label" data-title="预期结果">预期结果</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popover);
+            console.log('Popover element created and added to body');
+            return popover;
+        }
+        
+        graph.on('node:dblclick', (evt) => {
+            console.log('Node double-clicked:', evt);
+            const { item } = evt;
+            const model = item.getModel();
+            
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.zIndex = '10000';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = model.label || '';
+            input.style.padding = '4px';
+            input.style.border = '1px solid #1890ff';
+            input.style.borderRadius = '4px';
+            input.style.width = '200px';
+            input.style.fontSize = '14px';
+            
+            container.appendChild(input);
+            document.body.appendChild(container);
+            
+            const bbox = item.getBBox();
+            const point = graph.getClientByPoint(bbox.centerX, bbox.centerY);
+            container.style.left = `${point.x - 100}px`;
+            container.style.top = `${point.y - 15}px`;
+            
+            input.focus();
+            input.select();
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const newLabel = input.value.trim();
+                    if (newLabel) {
+                        model.label = newLabel;
+                        graph.updateItem(item, model);
+                        updateNodeProperties(model);
+                        history.saveState(graph.save());
+                    }
+                    document.body.removeChild(container);
+                } else if (e.key === 'Escape') {
+                    document.body.removeChild(container);
+                }
+            });
+            
+            input.addEventListener('blur', () => {
+                const newLabel = input.value.trim();
+                if (newLabel) {
+                    model.label = newLabel;
+                    graph.updateItem(item, model);
+                    updateNodeProperties(model);
+                    history.saveState(graph.save());
+                }
+                document.body.removeChild(container);
+            });
+            
+            evt.stopPropagation();
         });
         
         graph.on('canvas:click', () => {
@@ -674,6 +933,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     graph.layout();
                     graph.fitView();
+                    
+                    evt.stopPropagation();
                 }
             }
         });
@@ -812,45 +1073,154 @@ document.addEventListener('DOMContentLoaded', function() {
         document.removeEventListener('click', hideContextMenu);
     }
     
-    const nodePopover = document.getElementById('node-popover');
-    const popoverClose = document.querySelector('.popover-close');
+    let nodePopover = document.getElementById('node-popover');
+    let popoverClose = document.querySelector('.popover-close');
     
-    function showNodePopover(x, y, node) {
-        if (!nodePopover) return;
+    if (!nodePopover) {
+        nodePopover = createPopoverElement();
+        popoverClose = nodePopover.querySelector('.popover-close');
+        console.log('Popover created and initialized');
+    } else {
+        document.body.appendChild(nodePopover);
+        console.log('Popover initialized and moved to body');
+    }
+    
+    function showNodePopover(x, y, node, evt) {
+        console.log('showNodePopover called:', { x, y, node });
         
-        updatePopoverActiveStates(node);
-        
-        nodePopover.style.display = 'block';
-        nodePopover.style.left = `${x}px`;
-        nodePopover.style.top = `${y}px`;
-        
-        if (popoverClose) {
-            popoverClose.onclick = hideNodePopover;
+        if (!document.getElementById('node-popover')) {
+            console.error('Popover element not found in showNodePopover, creating it dynamically');
+            nodePopover = createPopoverElement();
+            popoverClose = nodePopover.querySelector('.popover-close');
         }
         
-        const priorityLabels = nodePopover.querySelectorAll('.priority-label');
-        priorityLabels.forEach(label => {
-            label.onclick = () => {
-                const priority = label.getAttribute('data-priority');
-                applyPriorityToNode(node.id, priority);
-                
-                priorityLabels.forEach(l => l.classList.remove('active'));
-                label.classList.add('active');
-            };
-        });
+        const popover = document.getElementById('node-popover');
         
-        const titleLabels = nodePopover.querySelectorAll('.title-label');
-        titleLabels.forEach(label => {
-            label.onclick = () => {
-                const title = label.getAttribute('data-title');
-                applyTitleToNode(node.id, title);
-                
-                titleLabels.forEach(l => l.classList.remove('active'));
-                label.classList.add('active');
-            };
-        });
+        if (!popover) {
+            console.error('Popover element still not found after creation attempt');
+            return;
+        }
         
-        document.addEventListener('click', handlePopoverOutsideClick);
+        if (!document.body.contains(popover)) {
+            console.log('Re-appending popover to body');
+            document.body.appendChild(popover);
+        }
+        
+        try {
+            updatePopoverActiveStates(node);
+            
+            popover.style.zIndex = '9999';
+            popover.style.position = 'fixed'; // Changed to fixed to match CSS
+            popover.style.display = 'block';
+            
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            let left = x + 10;
+            let top = y + 10;
+            
+            if (left + 300 > viewportWidth) left = viewportWidth - 310;
+            if (top + 300 > viewportHeight) top = viewportHeight - 310;
+            
+            nodePopover.style.left = `${left}px`;
+            nodePopover.style.top = `${top}px`;
+            
+            if (evt && evt.stopPropagation) {
+                evt.stopPropagation();
+            }
+            
+            console.log('Popover positioned at:', { left: nodePopover.style.left, top: nodePopover.style.top });
+            
+            if (popoverClose) {
+                popoverClose.onclick = hideNodePopover;
+            }
+            
+            console.log('Priority labels found:', nodePopover.querySelectorAll('.priority-label').length);
+            console.log('Title labels found:', nodePopover.querySelectorAll('.title-label').length);
+            
+            const priorityLabels = nodePopover.querySelectorAll('.priority-label');
+            console.log('Setting up click handlers for priority labels:', priorityLabels.length);
+            
+            priorityLabels.forEach(label => {
+                label.removeEventListener('click', label._clickHandler);
+                
+                label._clickHandler = function(e) {
+                    e.stopPropagation(); // Prevent closing the popover
+                    e.preventDefault(); // Prevent default
+                    
+                    const priority = this.getAttribute('data-priority');
+                    console.log('Priority label clicked:', priority, 'for node:', node.id);
+                    
+                    if (node && node.id) {
+                        applyPriorityToNode(node.id, priority);
+                        
+                        const allLabels = nodePopover.querySelectorAll('.priority-label');
+                        allLabels.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        console.log('Priority applied successfully');
+                    } else {
+                        console.error('Cannot apply priority: Invalid node or node ID');
+                    }
+                };
+                
+                label.addEventListener('click', label._clickHandler);
+                
+                label.style.cursor = 'pointer';
+                label.title = 'Click to apply ' + label.getAttribute('data-priority') + ' priority';
+                
+                console.log('Priority label handler attached:', label.getAttribute('data-priority'));
+            });
+            
+            const titleLabels = nodePopover.querySelectorAll('.title-label');
+            console.log('Setting up click handlers for title labels:', titleLabels.length);
+            
+            titleLabels.forEach(label => {
+                label.removeEventListener('click', label._clickHandler);
+                
+                label._clickHandler = function(e) {
+                    e.stopPropagation(); // Prevent closing the popover
+                    e.preventDefault(); // Prevent default
+                    
+                    const title = this.getAttribute('data-title');
+                    console.log('Title label clicked:', title, 'for node:', node.id);
+                    
+                    if (node && node.id) {
+                        applyTitleToNode(node.id, title);
+                        
+                        const allLabels = nodePopover.querySelectorAll('.title-label');
+                        allLabels.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        console.log('Title applied successfully');
+                    } else {
+                        console.error('Cannot apply title: Invalid node or node ID');
+                    }
+                };
+                
+                label.addEventListener('click', label._clickHandler);
+                
+                label.style.cursor = 'pointer';
+                label.title = 'Click to apply ' + label.getAttribute('data-title') + ' title';
+                
+                console.log('Title label handler attached:', label.getAttribute('data-title'));
+            });
+            
+            document.removeEventListener('click', handlePopoverOutsideClick);
+            document.addEventListener('click', handlePopoverOutsideClick);
+            
+            console.log('Popover setup complete');
+            
+            setTimeout(() => {
+                const popoverElement = document.getElementById('node-popover');
+                if (popoverElement) {
+                    popoverElement.style.display = 'block';
+                    console.log('Ensuring popover visibility after setup');
+                }
+            }, 50);
+        } catch (error) {
+            console.error('Error in showNodePopover:', error);
+        }
     }
     
     function hideNodePopover() {
@@ -889,31 +1259,160 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function applyPriorityToNode(nodeId, priority) {
-        if (!nodeId) return;
+        console.log('applyPriorityToNode called with:', nodeId, priority);
+        if (!nodeId) {
+            console.error('No nodeId provided to applyPriorityToNode');
+            return;
+        }
         
-        const node = findNodeById(mindMapData, nodeId);
-        if (!node) return;
+        if (nodeId === 'debug') {
+            console.log('Debug node detected, applying priority visually only');
+            
+            // Update the active state in the popover
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const allLabels = popover.querySelectorAll('.priority-label');
+                allLabels.forEach(l => l.classList.remove('active'));
+                
+                const selectedLabel = popover.querySelector(`.priority-label[data-priority="${priority}"]`);
+                if (selectedLabel) {
+                    selectedLabel.classList.add('active');
+                }
+                
+                console.log('Priority visually applied to debug node:', priority);
+            }
+            
+            return;
+        }
         
-        node.priority = priority;
-        
-        graph.updateItem(nodeId, node);
-        history.saveState(graph.save());
-        
-        updateNodeProperties(node);
+        try {
+            const node = graph.findById(nodeId);
+            if (!node) {
+                console.error('Node not found in graph with id:', nodeId);
+                return;
+            }
+            
+            const model = node.getModel();
+            console.log('Found node model:', model);
+            
+            // Update the node model with the priority
+            model.priority = priority;
+            
+            // Update the node in the graph
+            graph.updateItem(nodeId, {
+                priority: priority
+            });
+            
+            graph.changeData(mindMapData);
+            graph.refresh();
+            
+            mindMapData = graph.save();
+            
+            // Update the node properties panel
+            if (nodePrioritySelect) {
+                const priorityMap = {
+                    'P0': '1',
+                    'P1': '2',
+                    'P2': '3'
+                };
+                
+                if (Array.from(nodePrioritySelect.options).some(opt => opt.value === priority)) {
+                    nodePrioritySelect.value = priority;
+                } 
+                else if (priorityMap[priority]) {
+                    nodePrioritySelect.value = priorityMap[priority];
+                }
+            }
+            
+            history.saveState(mindMapData);
+            
+            console.log('Priority successfully applied to node:', priority);
+            
+            // Update the active state in the popover
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const allLabels = popover.querySelectorAll('.priority-label');
+                allLabels.forEach(l => l.classList.remove('active'));
+                
+                const selectedLabel = popover.querySelector(`.priority-label[data-priority="${priority}"]`);
+                if (selectedLabel) {
+                    selectedLabel.classList.add('active');
+                }
+            }
+        } catch (error) {
+            console.error('Error applying priority to node:', error);
+        }
     }
     
     function applyTitleToNode(nodeId, title) {
-        if (!nodeId) return;
+        console.log('applyTitleToNode called with:', nodeId, title);
+        if (!nodeId) {
+            console.error('No nodeId provided to applyTitleToNode');
+            return;
+        }
         
-        const node = findNodeById(mindMapData, nodeId);
-        if (!node) return;
+        if (nodeId === 'debug') {
+            console.log('Debug node detected, applying title visually only');
+            
+            // Update the active state in the popover
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const allLabels = popover.querySelectorAll('.title-label');
+                allLabels.forEach(l => l.classList.remove('active'));
+                
+                const selectedLabel = popover.querySelector(`.title-label[data-title="${title}"]`);
+                if (selectedLabel) {
+                    selectedLabel.classList.add('active');
+                }
+                
+                console.log('Title visually applied to debug node:', title);
+            }
+            
+            return;
+        }
         
-        node.title = title;
+        try {
+            const node = graph.findById(nodeId);
+            if (!node) {
+                console.error('Node not found in graph with id:', nodeId);
+                return;
+            }
+            
+            const model = node.getModel();
+            console.log('Found node model for title update:', model);
+            
+            // Update the node model with the title
+            model.title = title;
+            
+            // Update the node in the graph
+            graph.updateItem(nodeId, {
+                title: title
+            });
+            
+            mindMapData = graph.save();
+            
+            history.saveState(mindMapData);
+            
+            console.log('Title successfully applied to node:', title);
+            
+            // Update the active state in the popover
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const allLabels = popover.querySelectorAll('.title-label');
+                allLabels.forEach(l => l.classList.remove('active'));
+                
+                const selectedLabel = popover.querySelector(`.title-label[data-title="${title}"]`);
+                if (selectedLabel) {
+                    selectedLabel.classList.add('active');
+                }
+            }
+        } catch (error) {
+            console.error('Error applying title to node:', error);
+        }
         
-        graph.updateItem(nodeId, node);
-        history.saveState(graph.save());
-        
-        updateNodeProperties(node);
+        // if (nodeId !== 'debug') {
+        //     hideNodePopover();
+        // }
     }
     
     function updateNodeProperties(node) {
@@ -1023,8 +1522,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
         parent.children.push(newNode);
         
+        const currentZoom = graph.getZoom();
+        
+        const matrix = graph.get('group').getMatrix();
+        
         graph.changeData(mindMapData);
         history.saveState(graph.save());
+        
+        const graphBBox = graph.get('group').getBBox();
+        const viewportWidth = graph.get('width');
+        const viewportHeight = graph.get('height');
+        
+        if (graphBBox.width <= viewportWidth && graphBBox.height <= viewportHeight) {
+            graph.zoomTo(currentZoom);
+            
+            if (matrix) {
+                graph.get('group').setMatrix(matrix);
+                console.log('Maintained viewport after adding child node');
+            }
+        }
         
         selectedNode = newNode.id;
         const item = graph.findById(newNode.id);
@@ -1054,8 +1570,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
         parent.children.push(newNode);
         
+        const currentZoom = graph.getZoom();
+        
+        const matrix = graph.get('group').getMatrix();
+        
         graph.changeData(mindMapData);
         history.saveState(graph.save());
+        
+        const graphBBox = graph.get('group').getBBox();
+        const viewportWidth = graph.get('width');
+        const viewportHeight = graph.get('height');
+        
+        if (graphBBox.width <= viewportWidth && graphBBox.height <= viewportHeight) {
+            graph.zoomTo(currentZoom);
+            
+            if (matrix) {
+                graph.get('group').setMatrix(matrix);
+                console.log('Maintained viewport after adding sibling node');
+            }
+        }
         
         selectedNode = newNode.id;
         const item = graph.findById(newNode.id);
@@ -1182,45 +1715,141 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function applyNodeProperties() {
+        console.log('applyNodeProperties called, selectedNode:', selectedNode);
         if (!selectedNode) return;
         
-        const node = findNodeById(mindMapData, selectedNode);
-        if (!node) return;
+        if (selectedNode === 'debug') {
+            console.log('Debug node detected in applyNodeProperties');
+            
+            if (nodePrioritySelect) {
+                const priorityMap = {
+                    '1': 'P0',
+                    '2': 'P1',
+                    '3': 'P2',
+                    'none': null
+                };
+                
+                const priority = nodePrioritySelect.value;
+                const mappedPriority = priorityMap[priority] || priority;
+                
+                console.log('Applying priority to debug node:', priority, 'mapped to:', mappedPriority);
+                applyPriorityToNode('debug', mappedPriority);
+            }
+            
+            return;
+        }
+        
+        const graphNode = graph.findById(selectedNode);
+        if (!graphNode) {
+            console.error('Node not found in graph:', selectedNode);
+            return;
+        }
+        
+        const nodeModel = graphNode.getModel();
+        console.log('Applying node properties for node:', nodeModel);
+        
+        // Create a new model with all existing properties
+        const newModel = { ...nodeModel };
         
         if (nodeTextInput) {
-            node.label = nodeTextInput.value;
+            newModel.label = nodeTextInput.value;
         }
         
         if (nodeDescInput) {
-            node.description = nodeDescInput.value;
+            newModel.description = nodeDescInput.value;
         }
         
         if (nodeColorInput) {
-            if (!node.style) {
-                node.style = {};
+            if (!newModel.style) {
+                newModel.style = {};
             }
-            node.style.fill = nodeColorInput.value;
-            node.style.stroke = adjustColor(nodeColorInput.value, -20);
+            newModel.style.fill = nodeColorInput.value;
+            newModel.style.stroke = adjustColor(nodeColorInput.value, -20);
         }
         
         if (nodeShapeSelect) {
-            node.type = nodeShapeSelect.value;
+            newModel.type = nodeShapeSelect.value;
         }
         
         if (nodePrioritySelect) {
-            node.priority = nodePrioritySelect.value;
+            const priorityMap = {
+                '1': 'P0',
+                '2': 'P1',
+                '3': 'P2',
+                'none': null
+            };
+            
+            const priority = nodePrioritySelect.value;
+            newModel.priority = priorityMap[priority] || priority;
+            
+            console.log('Setting priority:', priority, 'mapped to:', newModel.priority);
         }
         
-        graph.updateItem(selectedNode, node);
+        if (tagsList) {
+            const tags = [];
+            const tagElements = tagsList.querySelectorAll('.tag-item span');
+            tagElements.forEach(tagElement => {
+                tags.push(tagElement.textContent);
+            });
+            newModel.tags = tags;
+        }
         
-        const data = graph.save();
-        mindMapData = data;
+        console.log('New node model:', newModel);
         
-        history.saveState(data);
-        
-        graph.changeData(mindMapData);
-        
-        updateNodeProperties(node);
+        // Force a complete redraw by removing and re-adding the node
+        try {
+            const x = nodeModel.x;
+            const y = nodeModel.y;
+            const parent = findParentNode(mindMapData, selectedNode);
+            const children = mindMapData && mindMapData.nodes ? mindMapData.nodes.filter(n => n.parent === selectedNode) : [];
+            
+            graph.removeItem(selectedNode);
+            
+            // Add it back with the new properties
+            newModel.x = x;
+            newModel.y = y;
+            newModel.id = selectedNode; // Ensure ID is preserved
+            graph.addItem('node', newModel);
+            
+            if (parent) {
+                graph.addItem('edge', {
+                    source: parent.id,
+                    target: selectedNode,
+                    type: 'cubic-horizontal'
+                });
+            }
+            
+            children.forEach(child => {
+                graph.addItem('edge', {
+                    source: selectedNode,
+                    target: child.id,
+                    type: 'cubic-horizontal'
+                });
+            });
+            
+            // Update the mindMapData
+            mindMapData = graph.save();
+            history.saveState(mindMapData);
+            
+            // Force a refresh
+            graph.refresh();
+            
+            // Update the properties panel
+            updateNodeProperties(newModel);
+            
+            console.log('Node properties applied successfully with complete redraw');
+        } catch (error) {
+            console.error('Error applying node properties:', error);
+            
+            console.log('Falling back to simple update');
+            graph.updateItem(selectedNode, newModel);
+            graph.refresh();
+            
+            mindMapData = graph.save();
+            history.saveState(mindMapData);
+            
+            updateNodeProperties(graphNode.getModel());
+        }
     }
     
     function adjustColor(color, amount) {
@@ -1447,6 +2076,54 @@ document.addEventListener('DOMContentLoaded', function() {
     if (zoomFitBtn) {
         zoomFitBtn.addEventListener('click', () => {
             graph.fitView();
+        });
+    }
+    
+    const debugPopoverBtn = document.getElementById('debug-popover');
+    if (debugPopoverBtn) {
+        debugPopoverBtn.addEventListener('click', () => {
+            console.log('Debug popover button clicked');
+            
+            if (!document.getElementById('node-popover')) {
+                console.error('Popover element not found, creating it dynamically');
+                nodePopover = createPopoverElement();
+                popoverClose = nodePopover.querySelector('.popover-close');
+            }
+            
+            const popover = document.getElementById('node-popover');
+            if (popover) {
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                popover.style.zIndex = '9999';
+                popover.style.position = 'fixed';
+                popover.style.display = 'block';
+                popover.style.left = `${viewportWidth / 2 - 150}px`;
+                popover.style.top = `${viewportHeight / 2 - 150}px`;
+                
+                console.log('Debug popover positioned at:', { 
+                    left: popover.style.left, 
+                    top: popover.style.top,
+                    display: popover.style.display,
+                    zIndex: popover.style.zIndex
+                });
+                
+                const sampleNode = { id: 'debug', priority: 'P1', title: '用例标题' };
+                
+                setTimeout(() => {
+                    showNodePopover(
+                        parseInt(popover.style.left), 
+                        parseInt(popover.style.top), 
+                        sampleNode
+                    );
+                    
+                    popover.style.display = 'block';
+                    
+                    console.log('Debug popover setup complete with event handlers');
+                }, 100);
+            } else {
+                console.error('Failed to create or find popover element');
+            }
         });
     }
     

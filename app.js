@@ -270,10 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         'P2': 'P2'
                     };
                     
+                    // Priority label at the bottom of the node
                     group.addShape('rect', {
                         attrs: {
-                            x: width - 30,
-                            y: 4,
+                            x: 4,
+                            y: height - 22,
                             width: 26,
                             height: 18,
                             radius: 9,
@@ -286,8 +287,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     group.addShape('text', {
                         attrs: {
                             text: priorityLabels[priority],
-                            x: width - 17,
-                            y: 13,
+                            x: 17,
+                            y: height - 13,
                             fontSize: 12,
                             fontWeight: 'bold',
                             fill: '#fff',
@@ -345,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     
                     let tagX = 0;
-                    let tagY = height + 4;
+                    let tagY = -24; // Position tags at the top of the node
                     
                     tags.forEach((tag, index) => {
                         const tagColors = {
@@ -395,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         tagX += tag.length * 7 + 12;
                         if (tagX > width - 20) {
                             tagX = 0;
-                            tagY += 24;
+                            tagY -= 24; // Move up for next row of tags
                         }
                     });
                 }
@@ -698,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         graph.on('node:click', (evt) => {
             console.log('Node clicked:', evt);
-            const { item, clientX, clientY } = evt;
+            const { item } = evt;
             const model = item.getModel();
             console.log('Node model:', model);
             
@@ -730,11 +731,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 popover.style.position = 'fixed';
                 popover.style.display = 'block';
                 
-                let left = clientX + 10;
-                let top = clientY + 10;
+                const nodeBox = item.getBBox();
+                const nodeGroup = item.getContainer();
+                const { x, y } = nodeGroup.getCanvasBBox();
                 
+                const canvasContainer = document.getElementById('mind-map-container');
+                const canvasRect = canvasContainer.getBoundingClientRect();
+                
+                let left = canvasRect.left + x + (nodeBox.width / 2) - 150; // Center popover horizontally
+                let top = canvasRect.top + y - 150; // Position above the node
+                
+                if (left < 10) left = 10;
                 if (left + 300 > viewportWidth) left = viewportWidth - 310;
-                if (top + 300 > viewportHeight) top = viewportHeight - 310;
+                if (top < 10) top = 10;
+                if (top + 150 > canvasRect.top + y - 10) top = canvasRect.top + y - 160; // Ensure it's above the node
                 
                 popover.style.left = `${left}px`;
                 popover.style.top = `${top}px`;
@@ -776,6 +786,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 evt.stopPropagation();
+                
+                document.removeEventListener('click', handlePopoverOutsideClick);
+                document.addEventListener('click', handlePopoverOutsideClick);
                 
                 console.log('Direct popover setup complete');
             }

@@ -599,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         graph.on('node:click', (evt) => {
-            const { item } = evt;
+            const { item, clientX, clientY } = evt;
             const model = item.getModel();
             
             if (selectedNode && selectedNode !== model.id) {
@@ -612,6 +612,8 @@ document.addEventListener('DOMContentLoaded', function() {
             updateNodeProperties(model);
             
             hideContextMenu();
+            
+            showNodePopover(clientX, clientY, model);
         });
         
         graph.on('canvas:click', () => {
@@ -808,6 +810,110 @@ document.addEventListener('DOMContentLoaded', function() {
         
         contextMenu.style.display = 'none';
         document.removeEventListener('click', hideContextMenu);
+    }
+    
+    const nodePopover = document.getElementById('node-popover');
+    const popoverClose = document.querySelector('.popover-close');
+    
+    function showNodePopover(x, y, node) {
+        if (!nodePopover) return;
+        
+        updatePopoverActiveStates(node);
+        
+        nodePopover.style.display = 'block';
+        nodePopover.style.left = `${x}px`;
+        nodePopover.style.top = `${y}px`;
+        
+        if (popoverClose) {
+            popoverClose.onclick = hideNodePopover;
+        }
+        
+        const priorityLabels = nodePopover.querySelectorAll('.priority-label');
+        priorityLabels.forEach(label => {
+            label.onclick = () => {
+                const priority = label.getAttribute('data-priority');
+                applyPriorityToNode(node.id, priority);
+                
+                priorityLabels.forEach(l => l.classList.remove('active'));
+                label.classList.add('active');
+            };
+        });
+        
+        const titleLabels = nodePopover.querySelectorAll('.title-label');
+        titleLabels.forEach(label => {
+            label.onclick = () => {
+                const title = label.getAttribute('data-title');
+                applyTitleToNode(node.id, title);
+                
+                titleLabels.forEach(l => l.classList.remove('active'));
+                label.classList.add('active');
+            };
+        });
+        
+        document.addEventListener('click', handlePopoverOutsideClick);
+    }
+    
+    function hideNodePopover() {
+        if (!nodePopover) return;
+        
+        nodePopover.style.display = 'none';
+        document.removeEventListener('click', handlePopoverOutsideClick);
+    }
+    
+    function handlePopoverOutsideClick(event) {
+        if (nodePopover && !nodePopover.contains(event.target) && event.target.closest('.g6-node') === null) {
+            hideNodePopover();
+        }
+    }
+    
+    function updatePopoverActiveStates(node) {
+        const priorityLabels = nodePopover.querySelectorAll('.priority-label');
+        priorityLabels.forEach(label => {
+            const priority = label.getAttribute('data-priority');
+            if (node.priority === priority) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
+        });
+        
+        const titleLabels = nodePopover.querySelectorAll('.title-label');
+        titleLabels.forEach(label => {
+            const title = label.getAttribute('data-title');
+            if (node.title === title) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
+        });
+    }
+    
+    function applyPriorityToNode(nodeId, priority) {
+        if (!nodeId) return;
+        
+        const node = findNodeById(mindMapData, nodeId);
+        if (!node) return;
+        
+        node.priority = priority;
+        
+        graph.updateItem(nodeId, node);
+        history.saveState(graph.save());
+        
+        updateNodeProperties(node);
+    }
+    
+    function applyTitleToNode(nodeId, title) {
+        if (!nodeId) return;
+        
+        const node = findNodeById(mindMapData, nodeId);
+        if (!node) return;
+        
+        node.title = title;
+        
+        graph.updateItem(nodeId, node);
+        history.saveState(graph.save());
+        
+        updateNodeProperties(node);
     }
     
     function updateNodeProperties(node) {

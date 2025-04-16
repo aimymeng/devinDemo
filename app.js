@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const defaultMindMap = {
         id: 'root',
         label: 'Central Topic',
+        title: '思维导图',
         type: 'rect',
         style: {
             fill: '#4D9DE0',
@@ -94,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initGraph() {
         G6.registerNode('xmind-node', {
             draw: (cfg, group) => {
-                const { id, label, description, tags, priority, collapsed, style = {} } = cfg;
+                const { id, label, title, description, tags, priority, collapsed, style = {} } = cfg;
                 
                 const nodeStyle = {
                     fill: '#4D9DE0',
@@ -102,6 +103,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     radius: 4,
                     ...style
                 };
+                
+                let titleShape;
+                if (title) {
+                    titleShape = group.addShape('text', {
+                        attrs: {
+                            text: title,
+                            x: 0,
+                            y: -20,
+                            fontFamily: 'Segoe UI',
+                            fill: '#666',
+                            fontSize: 12,
+                            textAlign: 'left',
+                            textBaseline: 'top',
+                            cursor: 'pointer'
+                        },
+                        name: 'title-shape'
+                    });
+                }
                 
                 const labelShape = group.addShape('text', {
                     attrs: {
@@ -277,18 +296,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'tags-container'
                     });
                     
-                    let tagX = 0;
-                    let tagY = height + 4;
+                    let tagX = 12;
+                    let tagY = height - 24;
                     
                     tags.forEach((tag, index) => {
+                        const tagColors = {
+                            'P0': '#e74c3c',
+                            'P1': '#f39c12',
+                            'P2': '#3498db',
+                            'LIN': '#2ecc71',
+                            '通过': '#27ae60',
+                            'Android': '#9b59b6',
+                            'iOS': '#34495e',
+                            'default': '#95a5a6'
+                        };
+                        
+                        const tagColor = tagColors[tag] || tagColors.default;
+                        
                         const tagBg = tagsContainer.addShape('rect', {
                             attrs: {
                                 x: tagX,
                                 y: tagY,
                                 width: tag.length * 6 + 8,
                                 height: 16,
-                                fill: '#f0f0f0',
-                                radius: 2
+                                fill: tagColor,
+                                radius: 8
                             },
                             name: `tag-bg-${index}`
                         });
@@ -297,9 +329,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             attrs: {
                                 text: tag,
                                 x: tagX + 4,
-                                y: tagY + 12,
+                                y: tagY + 8,
                                 fontSize: 10,
-                                fill: '#666',
+                                fill: '#fff',
                                 textBaseline: 'middle'
                             },
                             name: `tag-text-${index}`
@@ -307,8 +339,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         tagX += tag.length * 6 + 12;
                         if (tagX > width - 20) {
-                            tagX = 0;
-                            tagY += 20;
+                            tagX = 12;
+                            tagY -= 20;
                         }
                     });
                 }
@@ -320,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const group = item.getContainer();
                 const keyShape = item.getKeyShape();
                 const labelShape = group.find(element => element.get('name') === 'label-shape');
+                const titleShape = group.find(element => element.get('name') === 'title-shape');
                 const oldPriorityIndicator = group.find(element => element.get('name') === 'priority-indicator');
                 const oldDescIndicator = group.find(element => element.get('name') === 'description-indicator');
                 const oldCollapsedIndicator = group.find(element => element.get('name') === 'collapsed-indicator');
@@ -328,6 +361,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (labelShape) {
                     labelShape.attr('text', cfg.label || 'Topic');
+                }
+                
+                if (titleShape) {
+                    if (cfg.title) {
+                        titleShape.attr('text', cfg.title);
+                    } else {
+                        titleShape.remove();
+                    }
+                } else if (cfg.title) {
+                    group.addShape('text', {
+                        attrs: {
+                            text: cfg.title,
+                            x: 0,
+                            y: -20,
+                            fontFamily: 'Segoe UI',
+                            fill: '#666',
+                            fontSize: 12,
+                            textAlign: 'left',
+                            textBaseline: 'top',
+                            cursor: 'pointer'
+                        },
+                        name: 'title-shape'
+                    });
                 }
                 
                 if (cfg.style) {
@@ -429,18 +485,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: 'tags-container'
                     });
                     
-                    let tagX = 0;
-                    let tagY = bbox.height + 4;
+                    let tagX = 12;
+                    let tagY = bbox.height - 24;
                     
                     cfg.tags.forEach((tag, index) => {
+                        const tagColors = {
+                            'P0': '#e74c3c',
+                            'P1': '#f39c12',
+                            'P2': '#3498db',
+                            'LIN': '#2ecc71',
+                            '通过': '#27ae60',
+                            'Android': '#9b59b6',
+                            'iOS': '#34495e',
+                            'default': '#95a5a6'
+                        };
+                        
+                        const tagColor = tagColors[tag] || tagColors.default;
+                        
                         tagsContainer.addShape('rect', {
                             attrs: {
                                 x: tagX,
                                 y: tagY,
                                 width: tag.length * 6 + 8,
                                 height: 16,
-                                fill: '#f0f0f0',
-                                radius: 2
+                                fill: tagColor,
+                                radius: 8
                             },
                             name: `tag-bg-${index}`
                         });
@@ -449,9 +518,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             attrs: {
                                 text: tag,
                                 x: tagX + 4,
-                                y: tagY + 12,
+                                y: tagY + 8,
                                 fontSize: 10,
-                                fill: '#666',
+                                fill: '#fff',
                                 textBaseline: 'middle'
                             },
                             name: `tag-text-${index}`
@@ -459,8 +528,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         tagX += tag.length * 6 + 12;
                         if (tagX > bbox.width - 20) {
-                            tagX = 0;
-                            tagY += 20;
+                            tagX = 12;
+                            tagY -= 20;
                         }
                     });
                 }
@@ -603,6 +672,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     graph.layout();
                     graph.fitView();
+                }
+            }
+        });
+        
+        graph.on('node:dblclick', (evt) => {
+            const { item, target } = evt;
+            const targetName = target.get('name');
+            
+            if (targetName === 'label-shape' || targetName === 'key-shape') {
+                const model = item.getModel();
+                selectedNode = model.id;
+                
+                if (nodeTextInput) {
+                    nodeTextInput.value = model.label || '';
+                    nodeTextInput.focus();
+                    nodeTextInput.select();
+                    
+                    const enterHandler = (e) => {
+                        if (e.key === 'Enter') {
+                            applyNodeProperties();
+                            nodeTextInput.removeEventListener('keypress', enterHandler);
+                        }
+                    };
+                    
+                    nodeTextInput.addEventListener('keypress', enterHandler);
                 }
             }
         });
@@ -1012,7 +1106,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         graph.updateItem(selectedNode, node);
-        history.saveState(graph.save());
+        
+        const data = graph.save();
+        mindMapData = data;
+        
+        history.saveState(data);
+        
+        graph.changeData(mindMapData);
+        
+        updateNodeProperties(node);
     }
     
     function adjustColor(color, amount) {

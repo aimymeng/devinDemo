@@ -2290,11 +2290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Tab' && selectedNode) {
             e.preventDefault();
             console.log('Tab key pressed, adding child node to', selectedNode);
-            if (addChildBtn) {
-                addChildBtn.click();
-            } else {
-                addChildNode(selectedNode);
-            }
+            addChildNode(selectedNode);
         }
         
         if (e.key === 'Enter' && selectedNode) {
@@ -2307,11 +2303,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             console.log('Adding sibling node to', selectedNode);
-            if (addSiblingBtn) {
-                addSiblingBtn.click();
-            } else {
-                addSiblingNode(selectedNode);
-            }
+            addSiblingNode(selectedNode);
         }
         
         if ((e.key === 'Delete' || e.key === 'Backspace') && 
